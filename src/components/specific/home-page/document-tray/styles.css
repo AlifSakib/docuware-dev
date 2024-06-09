@@ -1,0 +1,36 @@
+.documents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.document {
+  display: flex;
+  gap: 1rem;
+  padding: 5px;
+}
+
+.documents img {
+  width: 60px;
+  height: 80px;
+  object-fit: cover;
+}
+
+.document-info {
+  display: flex;
+  flex-direction: column;
+  font-size: small;
+}
+
+.document:hover {
+  background-color: lightblue; /* Light blue background on hover */
+}
+
+.document.selected {
+  border-color: blue;
+  background-color: #f0f8ff;
+}
+
+.single-selected {
+  background-color: gray; /* Gray background for single selection */
+}
