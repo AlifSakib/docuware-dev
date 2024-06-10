@@ -4,6 +4,7 @@ import Split from "react-split";
 import DocumentEditor from "../../components/specific/home-page/document-editor";
 import DocumentTray from "../../components/specific/home-page/document-tray";
 import "./styles.css";
+import DocumentsEditor from "../../components/specific/home-page/documents-editor";
 
 const HomePage = () => {
   const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(
@@ -30,7 +31,7 @@ const HomePage = () => {
       title: "Document 3",
       dateTime: "2021-09-01T12:00:00Z",
       image:
-        "https://images.pexels.com/photos/48195/document-agreement-documents-sign-48195.jpeg?auto=compress&cs=tinysrgb&w=300",
+        "https://www.imagetranslate.com/blog/content/images/2022/03/download--20-.png",
     },
   ];
 
@@ -49,7 +50,7 @@ const HomePage = () => {
           />
         </div>
         <div>
-          <DocumentEditor
+          <DocumentsEditor
             selectedDocumentId={selectedDocumentId}
             documents={documents}
             setSelectedDocumentId={setSelectedDocumentId}
