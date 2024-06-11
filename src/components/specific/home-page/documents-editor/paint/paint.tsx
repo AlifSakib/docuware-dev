@@ -33,7 +33,7 @@ const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
   const [circles, setCircles] = useState<Circle[]>([]);
   const [arrows, setArrows] = useState<Arrow[]>([]);
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
-  const [texts, setTexts] = useState<TextNode[]>([]);
+  const [textAreas, setTextAreas] = useState<TextNode[]>([]);
 
   const [image] = useImage(imageUrl);
   const transformerRef = useRef<any>(null);
@@ -60,6 +60,8 @@ const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
     [drawAction]
   );
 
+  console.log(selectedShapeId);
+
   const onClear = useCallback(() => {
     if (selectedShapeId) {
       transformerRef.current.detach();
@@ -75,8 +77,8 @@ const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
       setArrows((prevArrows) =>
         prevArrows.filter((arrow) => arrow.id !== selectedShapeId)
       );
-      setTexts((prevTexts) =>
-        prevTexts.filter((text) => text.id !== selectedShapeId)
+      setTextAreas((prevTextAreas) =>
+        prevTextAreas.filter((textArea) => textArea.id !== selectedShapeId)
       );
       setSelectedShapeId(null); // Clear the selected shape ID after removing it
     }
@@ -84,9 +86,81 @@ const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
 
   const isPaintRef = useRef(false);
 
+  const handleTextChange = (e: any, id: number) => {
+    const newTextAreas = textAreas.map((textArea) =>
+      textArea.id === id ? { ...textArea, text: e.target.value } : textArea
+    );
+    setTextAreas(newTextAreas);
+  };
+
   const onStageMouseUp = useCallback(() => {
     isPaintRef.current = false;
-  }, []);
+
+    // if (drawAction === DrawAction.TextNode) {
+    //   const stage = stageRef.current.getStage();
+    //   const pointerPosition = stage.getPointerPosition();
+    //   const newTextAreas = [...textAreas];
+
+    //   // Check if there's any text in the current text area
+    //   const currentTextArea = newTextAreas.find(
+    //     (textArea) => textArea.isEditing
+    //   );
+    //   if (currentTextArea) {
+    //     // Transfer text from the current text area to the canvas
+    //     newTextAreas[textAreas.indexOf(currentTextArea)] = {
+    //       ...currentTextArea,
+    //       isEditing: false,
+    //     };
+    //   }
+
+    //   // Add a new text area at the clicked position
+    //   newTextAreas.push({
+    //     x: pointerPosition.x,
+    //     y: pointerPosition.y,
+    //     text: "",
+    //     isEditing: true,
+    //     id: Date.now(),
+    //     color,
+    //   });
+
+    //   setTextAreas(newTextAreas);
+    //   // setIsAddingText(false); // Disable adding text mode after adding one text area
+    // }
+
+    const stage = stageRef.current.getStage();
+    const pointerPosition = stage.getPointerPosition();
+    const newTextAreas = [...textAreas];
+
+    // Check if there's any text in the current text area
+    const currentTextArea = newTextAreas.find((textArea) => textArea.isEditing);
+    switch (drawAction) {
+      case DrawAction.TextNode:
+        if (currentTextArea) {
+          // Transfer text from the current text area to the canvas
+          newTextAreas[textAreas.indexOf(currentTextArea)] = {
+            ...currentTextArea,
+            isEditing: false,
+          };
+        }
+
+        // Add a new text area at the clicked position
+        newTextAreas.push({
+          x: pointerPosition.x,
+          y: pointerPosition.y,
+          text: "",
+          isEditing: true,
+          id: uuidv4(),
+          color,
+        });
+
+        setTextAreas(newTextAreas);
+        // setIsAddingText(false); // Disable adding text mode after adding one text area
+        break;
+      default:
+        // Handle other cases
+        break;
+    }
+  }, [drawAction, textAreas, color, stageRef]);
 
   const currentShapeRef = useRef<string>();
 
@@ -149,18 +223,6 @@ const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
               color,
             },
           ]);
-          break;
-        }
-        case DrawAction.TextNode: {
-          const newText: TextNode = {
-            id,
-            x,
-            y,
-            color,
-            content: "Sample Text",
-            fontSize: 18, // Default font size
-          };
-          setTexts((prevTexts) => [...prevTexts, newText]);
           break;
         }
       }
@@ -282,7 +344,10 @@ const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
             rectangles={rectangles}
             circles={circles}
             arrows={arrows}
-            texts={texts}
+            textAreas={textAreas}
+            drawAction={drawAction}
+            setTextAreas={setTextAreas}
+            handleTextChange={handleTextChange}
             onBgClick={onBgClick}
             onShapeClick={onShapeClick}
             onStageMouseUp={onStageMouseUp}

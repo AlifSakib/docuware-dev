@@ -1,6 +1,10 @@
 import React, { useCallback, useState } from "react";
 import { SketchPicker } from "react-color";
 import { DrawAction, PAINT_OPTIONS } from "../canvas/canvas.constants";
+import { SlArrowDown } from "react-icons/sl";
+import { SlArrowUp } from "react-icons/sl";
+import { ImCross } from "react-icons/im";
+import styles from "./toolbox.module.css";
 
 interface ToolboxProps {
   color: string;
@@ -18,6 +22,7 @@ const Toolbox: React.FC<ToolboxProps> = ({
   onClear,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [annotationOpen, setAnnotationOpen] = useState(false);
 
   const handleClick = () => {
     setIsOpen(!isOpen);
@@ -34,45 +39,38 @@ const Toolbox: React.FC<ToolboxProps> = ({
   console.log(drawAction);
 
   return (
-    <div
-      style={{
-        width: "130px",
-      }}
-    >
+    <div className={styles.toolbarDiv}>
       <div
-        style={{
-          border: "1px solid black",
-          display: "flex",
-          justifyContent: "space-between",
-        }}
+        className={styles["dw-Toolbar"]}
+        onClick={() => setAnnotationOpen(!annotationOpen)}
       >
-        <strong>Annotation</strong>
-        <button>
-          <strong>+</strong>
-        </button>
+        <p className={styles["ui-widget-header"]}>Annotation</p>
+
+        {annotationOpen ? (
+          <SlArrowUp size={10} className={styles["ui-annotation-tools"]} />
+        ) : (
+          <SlArrowDown size={10} className={styles["ui-annotation-tools"]} />
+        )}
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "6px",
-        }}
-      >
-        {PAINT_OPTIONS.map(({ id, label, icon }) => (
-          <button
-            key={id}
-            title={label}
-            onClick={() => setDrawAction(id)}
-            style={{
-              backgroundColor: drawAction === id ? "lightblue" : "white",
-              border: "none",
-              padding: "6px",
-            }}
-          >
-            {icon}
-          </button>
-        ))}
-      </div>
+      {annotationOpen && (
+        <div className={styles["ui-annotation-tools"]}>
+          {PAINT_OPTIONS.map(({ id, label, icon }) => (
+            <div
+              className={styles["ui-annotation-tool"]}
+              key={id}
+              title={label}
+              onClick={() => setDrawAction(id)}
+              style={{
+                backgroundColor: drawAction === id ? "#81caf3" : "white",
+                border: drawAction === id ? "1px solid #0089cf" : "none",
+                padding: "2px",
+              }}
+            >
+              {icon}
+            </div>
+          ))}
+        </div>
+      )}
       <div
         className="popover"
         style={{
@@ -110,9 +108,8 @@ const Toolbox: React.FC<ToolboxProps> = ({
             />
           </div>
         )}
-        <button aria-label={"Clear"} onClick={() => handleClear()}>
-          x
-        </button>
+
+        <ImCross size={10} aria-label={"Clear"} onClick={() => handleClear()} />
       </div>
     </div>
   );

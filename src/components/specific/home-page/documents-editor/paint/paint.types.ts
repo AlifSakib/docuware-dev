@@ -26,11 +26,7 @@ export type Arrow = Shape & {
   points: [number, number, number, number];
 };
 
-export interface TextNode {
-  id: string;
-  x: number;
-  y: number;
-  color: string;
-  content: string; // Change this to match your intended property name
-  fontSize: number;
-}
+export type TextNode = Shape & {
+  text: string;
+  isEditing: boolean;
+};
