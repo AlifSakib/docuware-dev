@@ -42,6 +42,8 @@ interface CanvasProps {
   onStageMouseUp: () => void;
   onStageMouseDown: (e: KonvaEventObject<MouseEvent>) => void;
   onStageMouseMove: () => void;
+  rotation: number;
+  scale: number;
 }
 
 const Canvas: React.FC<CanvasProps> = ({
@@ -63,6 +65,8 @@ const Canvas: React.FC<CanvasProps> = ({
   onStageMouseUp,
   onStageMouseDown,
   onStageMouseMove,
+  rotation,
+  scale,
 }) => {
   return (
     <div
@@ -99,6 +103,9 @@ const Canvas: React.FC<CanvasProps> = ({
               y={0}
               height={SIZE}
               width={SIZE}
+              rotation={rotation}
+              scaleX={scale}
+              scaleY={scale}
               // draggable={isDraggable}
             />
           )}

@@ -25,7 +25,10 @@ const downloadURI = (uri: string | undefined, name: string) => {
 
 const SIZE = 800;
 
-const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
+const Paint: React.FC<PaintProps> = React.memo(function Paint({
+  imageUrl,
+  images,
+}) {
   const [color, setColor] = useState("#000");
   const [drawAction, setDrawAction] = useState<DrawAction>(DrawAction.Select);
   const [scribbles, setScribbles] = useState<Scribble[]>([]);
@@ -34,9 +37,74 @@ const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
   const [arrows, setArrows] = useState<Arrow[]>([]);
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
   const [textAreas, setTextAreas] = useState<TextNode[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [rotation, setRotation] = useState(0);
+  const [scale, setScale] = useState(1);
+  const [zoomPercentage, setZoomPercentage] = useState(100);
+  const [selectedLayers, setSelectedLayers] = useState(["layer1"]);
+  const [activeLayer, setActiveLayer] = useState<string | null>("layer1");
+
+  console.log(rectangles);
+
+  const nextPage = () => {
+    setCurrentPage((prev) => (prev + 1) % images.length);
+    setRotation(0);
+    setScale(1);
+  };
+
+  const prevPage = () => {
+    setCurrentPage((prev) => (prev - 1 + images.length) % images.length);
+    setRotation(0);
+    setScale(1);
+  };
+
+  const rotateLeft = () => {
+    setRotation((prev) => prev - 300);
+  };
+
+  const rotateRight = () => {
+    setRotation((prev) => prev + 300);
+  };
+
+  const zoomIn = () => {
+    setScale((prev) => {
+      const newScale = prev + 0.1;
+      setZoomPercentage(newScale * 100);
+      return newScale;
+    });
+  };
+
+  const zoomOut = () => {
+    setScale((prev) => {
+      const newScale = Math.max(0.1, prev - 0.1); // Ensure scale does not go below 0.1
+      setZoomPercentage(newScale * 100);
+      return newScale;
+    });
+  };
+
+  const handleZoomChange = (event) => {
+    const newZoomPercentage = event.target.value;
+    const newScale = newZoomPercentage / 100;
+    setScale(newScale);
+    setZoomPercentage(newZoomPercentage);
+  };
 
   const [image] = useImage(imageUrl);
   const transformerRef = useRef<any>(null);
+
+  // when image url changes, clear the canvas
+  React.useEffect(() => {
+    setScribbles([]);
+    setRectangles([]);
+    setCircles([]);
+    setArrows([]);
+    setTextAreas([]);
+  }, [imageUrl]);
+
+  const onExportClick = useCallback(() => {
+    const dataUri = stageRef?.current?.toDataURL({ pixelRatio: 3 });
+    downloadURI(dataUri, "image.png");
+  }, []);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const onImportImageClick = useCallback(() => {
@@ -44,11 +112,6 @@ const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
   }, []);
 
   const stageRef = useRef<any>(null);
-
-  const onExportClick = useCallback(() => {
-    const dataUri = stageRef?.current?.toDataURL({ pixelRatio: 3 });
-    downloadURI(dataUri, "image.png");
-  }, []);
 
   const onShapeClick = useCallback(
     (e: KonvaEventObject<MouseEvent>) => {
@@ -174,6 +237,7 @@ const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
       const y = pos?.y || 0;
       const id = uuidv4();
       currentShapeRef.current = id;
+      console.log({ drawAction });
 
       switch (drawAction) {
         case DrawAction.Scribble: {
@@ -225,6 +289,30 @@ const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
           ]);
           break;
         }
+        // case DrawAction.TextNode: {
+        //   const newTextAreas = [...textAreas];
+        //   const currentTextArea = newTextAreas.find(
+        //     (textArea) => textArea.isEditing
+        //   );
+        //   if (currentTextArea) {
+        //     newTextAreas[textAreas.indexOf(currentTextArea)] = {
+        //       ...currentTextArea,
+        //       isEditing: false,
+        //     };
+        //   }
+
+        //   newTextAreas.push({
+        //     x,
+        //     y,
+        //     text: "",
+        //     isEditing: true,
+        //     id,
+        //     color,
+        //   });
+
+        //   setTextAreas(newTextAreas);
+        //   break;
+        // }
       }
     },
     [drawAction, color]
@@ -299,12 +387,9 @@ const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
 
   const isDraggable = drawAction === DrawAction.Select;
 
-  const onBgClick = useCallback(
-    (e: KonvaEventObject<MouseEvent>) => {
-      transformerRef?.current?.nodes([]);
-    },
-    [drawAction]
-  );
+  const onBgClick = useCallback((e: KonvaEventObject<MouseEvent>) => {
+    transformerRef?.current?.nodes([]);
+  }, []);
 
   return (
     <div>
@@ -325,6 +410,20 @@ const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
             drawAction={drawAction}
             setDrawAction={setDrawAction}
             onClear={onClear}
+            currentPage={currentPage}
+            totalImages={images.length}
+            nextPage={nextPage}
+            prevPage={prevPage}
+            rotateLeft={rotateLeft}
+            rotateRight={rotateRight}
+            zoomIn={zoomIn}
+            zoomOut={zoomOut}
+            zoomPercentage={zoomPercentage}
+            handleZoomChange={handleZoomChange}
+            setSelectedLayers={setSelectedLayers}
+            selectedLayers={selectedLayers}
+            activeLayer={activeLayer}
+            setActiveLayer={setActiveLayer}
           />
         </div>
 
@@ -353,6 +452,9 @@ const Paint: React.FC<PaintProps> = React.memo(function Paint({ imageUrl }) {
             onStageMouseUp={onStageMouseUp}
             onStageMouseDown={onStageMouseDown}
             onStageMouseMove={onStageMouseMove}
+            rotation={rotation}
+            scale={scale}
+            selectedLayers={selectedLayers}
           />
         </div>
       </div>

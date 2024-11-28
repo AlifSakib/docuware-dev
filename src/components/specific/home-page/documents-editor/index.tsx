@@ -59,6 +59,16 @@ const DocumentsEditor: React.FC<DocumentEditorProps> = ({
     []
   );
 
+  const debouncedSetRotationLeft = useMemo(
+    () => debounce(() => setRotation((rotation) => rotation - 90), 300),
+    []
+  );
+
+  const debouncedSetRotationRight = useMemo(
+    () => debounce(() => setRotation((rotation) => rotation + 90), 300),
+    []
+  );
+
   const debouncedSetScale = useMemo(
     () => debounce((scale: number) => setScale(scale), 300),
     []
@@ -76,7 +86,7 @@ const DocumentsEditor: React.FC<DocumentEditorProps> = ({
         height: "100%",
       }}
     >
-      <Paint imageUrl={images[selectedDocumentId]} />
+      <Paint imageUrl={images[selectedDocumentId]} images={images} />
     </div>
   );
 };

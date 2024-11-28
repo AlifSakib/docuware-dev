@@ -8,7 +8,11 @@ interface ControlsProps {
 }
 
 const Controls: React.FC<ControlsProps> = ({ onExportClick }) => {
-  return <div>Control Panel</div>;
+  return (
+    <div>
+      <button onClick={onExportClick}>Export</button>
+    </div>
+  );
 };
 
 export default Controls;
